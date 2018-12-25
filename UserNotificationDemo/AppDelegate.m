@@ -7,8 +7,9 @@
 //
 
 #import "AppDelegate.h"
+#import <UserNotifications/UserNotifications.h>
 
-@interface AppDelegate ()
+@interface AppDelegate ()<UNUserNotificationCenterDelegate>
 
 @end
 
@@ -17,9 +18,33 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    
+    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:UNAuthorizationOptionAlert | UNAuthorizationOptionBadge completionHandler:^(BOOL granted, NSError * _Nullable error) {
+        NSLog(@"request Auth");
+    }];
+    UNNotificationAction* acceptCall = [UNNotificationAction actionWithIdentifier:@"Accept_Call" title:@"Accept Call" options:UNNotificationActionOptionForeground];
+    UNNotificationAction* declineCall = [UNNotificationAction actionWithIdentifier:@"Decline_Call" title:@"decline_Call" options:UNNotificationActionOptionDestructive];
+    UNTextInputNotificationAction* inputAction = [UNTextInputNotificationAction actionWithIdentifier:@"Reply_Text" title:@"Reply" options:UNNotificationActionOptionNone textInputButtonTitle:@"Send" textInputPlaceholder:@"input your text message"];
+    
+    UNNotificationCategory* callCat = [UNNotificationCategory categoryWithIdentifier:@"Call_Cate" actions:@[acceptCall, declineCall, inputAction] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
+    
+    [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:[NSSet setWithObject:callCat]];
+    [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+    
     return YES;
 }
 
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler
+{
+    if ([response.actionIdentifier isEqualToString:@"Reply_Text"]) {
+        UNTextInputNotificationResponse* textInput = response;
+        NSLog(@"user click %@ , text: %@", response.actionIdentifier, textInput.userText);
+    } else {
+        NSLog(@"user click %@ call", response.actionIdentifier);
+    }
+    
+    completionHandler();
+}
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.

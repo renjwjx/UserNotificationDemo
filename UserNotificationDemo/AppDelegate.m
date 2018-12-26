@@ -28,7 +28,10 @@
     
     UNNotificationCategory* callCat = [UNNotificationCategory categoryWithIdentifier:@"Call_Cate" actions:@[acceptCall, declineCall, inputAction] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
     
-    [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:[NSSet setWithObject:callCat]];
+    UNTextInputNotificationAction* replyAction = [UNTextInputNotificationAction actionWithIdentifier:@"Reply" title:@"Reply" options:UNNotificationActionOptionNone textInputButtonTitle:@"Send" textInputPlaceholder:@"Reply"];
+    UNNotificationCategory* replyCate = [UNNotificationCategory categoryWithIdentifier:@"Reply_Cate" actions:@[replyAction] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
+    
+    [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:[NSSet setWithObjects:callCat,replyCate, nil]];
     [UNUserNotificationCenter currentNotificationCenter].delegate = self;
     
     return YES;
@@ -36,8 +39,8 @@
 
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)(void))completionHandler
 {
-    if ([response.actionIdentifier isEqualToString:@"Reply_Text"]) {
-        UNTextInputNotificationResponse* textInput = response;
+    if ([response.actionIdentifier isEqualToString:@"Reply"]) {
+        UNTextInputNotificationResponse* textInput = (UNTextInputNotificationResponse*)response;
         NSLog(@"user click %@ , text: %@", response.actionIdentifier, textInput.userText);
     } else {
         NSLog(@"user click %@ call", response.actionIdentifier);
